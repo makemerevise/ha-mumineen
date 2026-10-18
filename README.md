@@ -5,7 +5,7 @@ Namaaz times, the Hijri date and miqaats from [mumineen.org](https://mumineen.or
 ## What you get
 
 **Sensors**
-- **Today's times:** Sihori, Fajr, Sunrise, Zawaal, Zohr end, Asr end, Maghrib, Maghrib end, Nisful layl and Nisful layl end.
+- **Namaaz times:** Sihori, Fajr, Sunrise, Zawaal, Zohr end, Asr end, Maghrib, Maghrib end, Nisful layl and Nisful layl end. Each shows the coming one: today's until a minute after it passes, then tomorrow's.
 - **Next namaaz:** the next of Fajr, Zohr and Maghrib, with its time.
 - **Hijri date:** the Misri calendar. After Maghrib, the `raat` attribute names the night that has begun.
 - **Miqaats this week:** a count of the miqaats in the next 7 days, plus your own events. The attributes list each one, with urus listed separately.

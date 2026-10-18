@@ -25,8 +25,8 @@ SALAAT_TIMES = (
     "nisful_layl",
     "nisful_layl_end",
 )
-# Listed under a Gregorian day but falling after its midnight.
-LATE_TIMES = ("nisful_layl", "nisful_layl_end")
+# How long a namaaz time sensor keeps showing a time that has just passed.
+ROLL_GRACE = timedelta(minutes=1)
 # The namaaz that "next namaaz" steps through, keyed by the time they start.
 NAMAAZ = {"fajr": "Fajr", "zawaal": "Zohr", "maghrib": "Maghrib"}
 

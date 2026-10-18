@@ -12,7 +12,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.util import dt as dt_util
 
-from .const import LATE_TIMES, SALAAT_TIMES, UPCOMING_DAYS
+from .const import ROLL_GRACE, SALAAT_TIMES, UPCOMING_DAYS
 from .coordinator import MumineenConfigEntry, MumineenCoordinator
 from .entity import TickingEntity
 from .events import KIND_MIQAAT, KIND_PERSONAL, KIND_URUS, Occurrence, Record
@@ -47,25 +47,29 @@ def _describe(occ: Occurrence, today: dt.date) -> dict[str, Any]:
 
 
 class SalaatTimeSensor(TickingEntity, SensorEntity):
-    """Today's time for one namaaz boundary (Sihori, Fajr, Maghrib, ...)."""
+    """The next time of one namaaz boundary (Sihori, Fajr, Maghrib, ...).
+
+    Shows today's time until a minute after it has passed, then moves on to
+    tomorrow's, so it always points at the coming one. The minute's grace lets
+    automations that fire exactly on the time still see it.
+    """
 
     _attr_device_class = SensorDeviceClass.TIMESTAMP
 
     def __init__(self, coordinator: MumineenCoordinator, key: str) -> None:
         super().__init__(coordinator, key)
         self._key = key
-        # Only the after-midnight times need checking through the night.
-        self._tick_daily = key not in LATE_TIMES
 
     @property
     def native_value(self) -> dt.datetime | None:
         now = dt_util.now()
-        # Nisful layl falls after midnight: until last night's has passed, it's the one to show.
-        yesterday = self.coordinator.times_for(now.date() - dt.timedelta(days=1))
-        if yesterday and yesterday.get(self._key) and yesterday[self._key] > now:
-            return yesterday[self._key]
-        times = self.coordinator.times_for(now.date())
-        return times.get(self._key) if times else None
+        cutoff = now - ROLL_GRACE
+        for offset in (-1, 0, 1, 2):
+            times = self.coordinator.times_for(now.date() + dt.timedelta(days=offset))
+            value = times.get(self._key) if times else None
+            if value and value > cutoff:
+                return value
+        return None
 
 
 class NextNamaazSensor(TickingEntity, SensorEntity):
