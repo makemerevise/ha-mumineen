@@ -1,0 +1,57 @@
+add_event:
+  fields:
+    name:
+      required: true
+      example: "Dada's barsi"
+      selector:
+        text:
+    month:
+      required: true
+      selector:
+        select:
+          mode: dropdown
+          options:
+            - { value: "1", label: "1 · Muharram" }
+            - { value: "2", label: "2 · Safar" }
+            - { value: "3", label: "3 · Rabi al-Awwal" }
+            - { value: "4", label: "4 · Rabi al-Aakhar" }
+            - { value: "5", label: "5 · Jumada al-Ula" }
+            - { value: "6", label: "6 · Jumada al-Ukhra" }
+            - { value: "7", label: "7 · Rajab" }
+            - { value: "8", label: "8 · Shaban" }
+            - { value: "9", label: "9 · Ramadan" }
+            - { value: "10", label: "10 · Shawwal" }
+            - { value: "11", label: "11 · Zilqad" }
+            - { value: "12", label: "12 · Zilhaj" }
+    day:
+      required: true
+      selector:
+        number:
+          min: 1
+          max: 30
+          mode: box
+    description:
+      selector:
+        text:
+          multiline: true
+remove_event:
+  fields:
+    event:
+      required: true
+      example: "Dada's barsi"
+      selector:
+        text:
+cast_screen:
+  fields:
+    entity_id:
+      required: true
+      selector:
+        entity:
+          multiple: true
+          filter:
+            integration: cast
+            domain: media_player
+    chime:
+      default: true
+      selector:
+        boolean:

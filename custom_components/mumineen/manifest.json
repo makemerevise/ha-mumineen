@@ -1,0 +1,15 @@
+{
+  "domain": "mumineen",
+  "name": "Mumineen",
+  "after_dependencies": ["cast"],
+  "codeowners": ["@makemerevise"],
+  "config_flow": true,
+  "dependencies": ["http"],
+  "documentation": "https://github.com/makemerevise/ha-mumineen",
+  "integration_type": "service",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/makemerevise/ha-mumineen/issues",
+  "requirements": [],
+  "single_config_entry": true,
+  "version": "0.1.0"
+}

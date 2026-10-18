@@ -1,0 +1,88 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Mumineen",
+        "description": "Namaaz times are worked out for this place. The nearest location mumineen.org knows is filled in for you.",
+        "data": {
+          "location_name": "Location name",
+          "latitude": "Latitude",
+          "longitude": "Longitude"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Couldn't get namaaz times from mumineen.org. Check the location and try again."
+    },
+    "abort": {
+      "single_instance_allowed": "Mumineen is already set up."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Mumineen options",
+        "data": {
+          "alert_minutes": "Minutes before Maghrib for \"Maghrib soon\"",
+          "key_miqaats": "Key miqaats to count down to"
+        },
+        "data_description": {
+          "key_miqaats": "Pick miqaats or your own events, or type a custom Hijri date as \"Name @ month/day\", for example \"Ramadan @ 9/1\"."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "sihori": { "name": "Sihori" },
+      "fajr": { "name": "Fajr" },
+      "sunrise": { "name": "Sunrise" },
+      "zawaal": { "name": "Zawaal" },
+      "zohr_end": { "name": "Zohr end" },
+      "asr_end": { "name": "Asr end" },
+      "maghrib": { "name": "Maghrib" },
+      "maghrib_end": { "name": "Maghrib end" },
+      "nisful_layl": { "name": "Nisful layl" },
+      "nisful_layl_end": { "name": "Nisful layl end" },
+      "next_namaaz": { "name": "Next namaaz" },
+      "next_namaaz_time": { "name": "Next namaaz time" },
+      "hijri_date": { "name": "Hijri date" },
+      "upcoming": { "name": "Miqaats this week" }
+    },
+    "binary_sensor": {
+      "maghrib_soon": { "name": "Maghrib soon" }
+    },
+    "calendar": {
+      "miqaats": { "name": "Miqaats" },
+      "urus": { "name": "Urus" },
+      "my_events": { "name": "My events" }
+    }
+  },
+  "services": {
+    "add_event": {
+      "name": "Add my event",
+      "description": "Adds an event to My events that repeats every year on the same Hijri day.",
+      "fields": {
+        "name": { "name": "Name", "description": "What the event is." },
+        "month": { "name": "Hijri month", "description": "Hijri month, 1 (Muharram) to 12 (Zilhaj)." },
+        "day": { "name": "Hijri day", "description": "Day of the Hijri month. A 30th falls on the 29th in 29-day months." },
+        "description": { "name": "Notes", "description": "Optional notes shown on the calendar." }
+      }
+    },
+    "remove_event": {
+      "name": "Remove my event",
+      "description": "Removes one of your own events (every year).",
+      "fields": {
+        "event": { "name": "Event", "description": "The event's name, or its id." }
+      }
+    },
+    "cast_screen": {
+      "name": "Cast Maghrib screen",
+      "description": "Shows the Maghrib countdown screen on Google Cast displays such as a Nest Hub.",
+      "fields": {
+        "entity_id": { "name": "Displays", "description": "The Cast displays to show it on." },
+        "chime": { "name": "Chime first", "description": "Play a soft chime before the screen appears." }
+      }
+    }
+  }
+}
