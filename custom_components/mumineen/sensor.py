@@ -12,7 +12,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.util import dt as dt_util
 
-from .const import SALAAT_TIMES, UPCOMING_DAYS
+from .const import LATE_TIMES, SALAAT_TIMES, UPCOMING_DAYS
 from .coordinator import MumineenConfigEntry, MumineenCoordinator
 from .entity import TickingEntity
 from .events import KIND_MIQAAT, KIND_PERSONAL, KIND_URUS, Occurrence, Record
@@ -54,10 +54,17 @@ class SalaatTimeSensor(TickingEntity, SensorEntity):
     def __init__(self, coordinator: MumineenCoordinator, key: str) -> None:
         super().__init__(coordinator, key)
         self._key = key
+        # Only the after-midnight times need checking through the night.
+        self._tick_daily = key not in LATE_TIMES
 
     @property
     def native_value(self) -> dt.datetime | None:
-        times = self.coordinator.times_for(dt_util.now().date())
+        now = dt_util.now()
+        # Nisful layl falls after midnight: until last night's has passed, it's the one to show.
+        yesterday = self.coordinator.times_for(now.date() - dt.timedelta(days=1))
+        if yesterday and yesterday.get(self._key) and yesterday[self._key] > now:
+            return yesterday[self._key]
+        times = self.coordinator.times_for(now.date())
         return times.get(self._key) if times else None
 
 
@@ -130,6 +137,7 @@ class UpcomingSensor(TickingEntity, SensorEntity):
     _attr_icon = "mdi:calendar-star"
     _attr_native_unit_of_measurement = "miqaats"
     _unrecorded_attributes = frozenset({"events", "urus"})
+    _tick_daily = True
 
     def __init__(self, coordinator: MumineenCoordinator) -> None:
         super().__init__(coordinator, "upcoming")
@@ -158,6 +166,7 @@ class KeyMiqaatSensor(TickingEntity, SensorEntity):
     _attr_device_class = SensorDeviceClass.DURATION
     _attr_native_unit_of_measurement = UnitOfTime.DAYS
     _attr_suggested_display_precision = 0
+    _tick_daily = True
 
     def __init__(self, coordinator: MumineenCoordinator, spec: str) -> None:
         slug = re.sub(r"[^a-z0-9]+", "_", spec.lower()).strip("_")
@@ -167,10 +176,7 @@ class KeyMiqaatSensor(TickingEntity, SensorEntity):
 
     @property
     def _record(self) -> Record | None:
-        for spec, record in self.coordinator.key_miqaats():
-            if spec == self._spec:
-                return record
-        return None
+        return self.coordinator.key_record(self._spec)
 
     @property
     def _label(self) -> str:
@@ -184,7 +190,11 @@ class KeyMiqaatSensor(TickingEntity, SensorEntity):
         record = self._record
         if record is None:
             return None
-        return next_occurrence(record.month, record.day, dt_util.now().date())
+        today = dt_util.now().date()
+        cached = getattr(self, "_cached", None)
+        if cached is None or cached[0] != today or cached[1] is not record:
+            self._cached = (today, record, next_occurrence(record.month, record.day, today))
+        return self._cached[2]
 
     @property
     def native_value(self) -> int | None:

@@ -71,6 +71,11 @@ class MumineenCoordinator(DataUpdateCoordinator[MumineenData]):
         self._events_store = Store(hass, STORE_VERSION, f"{DOMAIN}.{entry.entry_id}.events")
         self._state = MumineenData()
         self._records: list[Record] = []
+        # Derived values only change when the data does, or once a day, so they are
+        # worked out once and reused by every entity rather than on each state write.
+        self._keys: dict[str, Record | None] = {}
+        self._memo: dict[tuple, list[Occurrence]] = {}
+        self._memo_day: dt.date | None = None
 
     # ---- settings -------------------------------------------------------
 
@@ -237,12 +242,23 @@ class MumineenCoordinator(DataUpdateCoordinator[MumineenData]):
             for e in self._state.personal
         ]
         self._records = recs
+        self._keys = {spec: resolve_key_miqaat(spec, recs) for spec in self.key_miqaat_specs}
+        self._memo.clear()
 
     def records(self, kind: str | None = None) -> list[Record]:
         return list(self._records) if kind is None else [r for r in self._records if r.kind == kind]
 
     def occurrences(self, start: dt.date, end: dt.date, kinds: tuple[str, ...]) -> list[Occurrence]:
-        return occurrences([r for r in self.records() if r.kind in kinds], start, end)
+        today = dt_util.now().date()
+        if self._memo_day != today or len(self._memo) > 64:
+            self._memo.clear()
+            self._memo_day = today
+        key = (start, end, kinds)
+        found = self._memo.get(key)
+        if found is None:
+            found = occurrences([r for r in self._records if r.kind in kinds], start, end)
+            self._memo[key] = found
+        return found
 
     def hijri_today(self, now: dt.datetime) -> HijriDate:
         return HijriDate.from_gregorian(now.date())
@@ -262,8 +278,10 @@ class MumineenCoordinator(DataUpdateCoordinator[MumineenData]):
         return None
 
     def key_miqaats(self) -> list[tuple[str, Record | None]]:
-        recs = self.records()
-        return [(spec, resolve_key_miqaat(spec, recs)) for spec in self.key_miqaat_specs]
+        return list(self._keys.items())
+
+    def key_record(self, spec: str) -> Record | None:
+        return self._keys.get(spec)
 
     def upcoming(self, now: dt.datetime, days: int, kinds: tuple[str, ...] = (KIND_MIQAAT, KIND_PERSONAL)) -> list[Occurrence]:
         start = now.date()

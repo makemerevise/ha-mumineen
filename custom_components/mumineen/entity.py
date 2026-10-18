@@ -31,11 +31,18 @@ class MumineenEntity(CoordinatorEntity[MumineenCoordinator]):
 
 
 class TickingEntity(MumineenEntity):
-    """Re-evaluates its state at the top of every minute, for time-based values."""
+    """Re-evaluates its state on a clock, for time-based values.
+
+    Every minute by default; entities whose value only changes with the date
+    set `_tick_daily` and re-evaluate just after midnight instead.
+    """
+
+    _tick_daily = False
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
-        self.async_on_remove(async_track_time_change(self.hass, self._tick, second=0))
+        when = {"hour": 0, "minute": 0, "second": 5} if self._tick_daily else {"second": 0}
+        self.async_on_remove(async_track_time_change(self.hass, self._tick, **when))
 
     @callback
     def _tick(self, _now) -> None:
